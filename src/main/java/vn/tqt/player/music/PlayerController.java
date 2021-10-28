@@ -61,6 +61,7 @@ public class PlayerController implements Initializable{
     private boolean running;
     private boolean playbtnstatus;
     private boolean randombtnstatus;
+    private boolean loopbtnstatus;
 
 
     @Override
@@ -91,8 +92,8 @@ public class PlayerController implements Initializable{
         });
     }
 
-    public void getSongInfo()  {
-        String fileLocation = songs.get(songNumber).toPath().toString();
+    public void getSongInfo(int songIndex)  {
+        String fileLocation = songs.get(songIndex).toPath().toString();
         try {
             InputStream input = new FileInputStream(fileLocation);
             ContentHandler handler = new DefaultHandler();
@@ -101,13 +102,6 @@ public class PlayerController implements Initializable{
             ParseContext parseCtx = new ParseContext();
             parser.parse(input, handler, metadata, parseCtx);
             input.close();
-//            System.out.println("----------------------------------------------");
-//            System.out.println("Title: " + metadata.get("title"));
-//            System.out.println("Artists: " + metadata.get("xmpDM:artist"));
-//            System.out.println("Composer : "+metadata.get("xmpDM:composer"));
-//            System.out.println("Genre : "+metadata.get("xmpDM:genre"));
-//            System.out.println("Album : "+metadata.get("xmpDM:album"));
-//           System.out.println("Genre : " + metadata.get("xmpDM:genre"));
             songName.setText(metadata.get("title"));
             singerName.setText(metadata.get("xmpDM:artist"));
         } catch (IOException | SAXException | TikaException e) {
@@ -115,17 +109,11 @@ public class PlayerController implements Initializable{
         }
     }
 
-    public void setTimeSong(){
-        Duration songTimes =  mediaPlayer.getCurrentTime();
-        double songTimeSecon = songTimes.toSeconds();
-        String songTimesString = String.valueOf(songTimeSecon);
-        songTime.setText(songTimesString);
 
-    }
     public void initMedia() {
         media = new Media(songs.get(songNumber).toURI().toString());
         mediaPlayer = new MediaPlayer(media);
-        getSongInfo();
+        getSongInfo(songNumber);
 
     }
 
@@ -137,7 +125,7 @@ public class PlayerController implements Initializable{
             playButton.setText("Play");
         } else{
             mediaPlayer.play();
-            getSongInfo();
+            getSongInfo(songNumber);
             beginTimer();
             playbtnstatus = true;
             playButton.setText("Pause");
@@ -146,6 +134,7 @@ public class PlayerController implements Initializable{
 
     public void nextSong() {
         if (songNumber < songs.size() - 1) {
+            playbtnstatus =false;
             songNumber++;
             mediaPlayer.stop();
             initMedia();
@@ -154,6 +143,7 @@ public class PlayerController implements Initializable{
             songNumber = 0;
             mediaPlayer.stop();
             initMedia();
+            playbtnstatus = false;
             playSong();
         }
     }
@@ -166,34 +156,48 @@ public class PlayerController implements Initializable{
             playSong();
         }
     }
-
     public void loopSong() {
-        Duration currentTime = mediaPlayer.getCurrentTime();
-        Duration duration = mediaPlayer.getTotalDuration();
-        if (currentTime == duration){
-
-              mediaPlayer.play();
+        if (!loopbtnstatus){
+            loopbtnstatus = true;
+            loopButton.setText("looping");
+        } else{
+            loopbtnstatus = false;
+            loopButton.setText("loop");
         }
 
     }
+    public void playLoopSong() {
+        if (loopbtnstatus){
+            mediaPlayer.stop();
+            media = new Media(songs.get(songNumber).toURI().toString());
+            mediaPlayer = new MediaPlayer(media);
+            mediaPlayer.play();
+            getSongInfo(songNumber);
+        }
 
-    public void randomSong() {
+    }
+     public void randomSong(){
         if (!randombtnstatus){
-            int max = songs.size() - 1;
-            int randomSongNum = (int)Math.floor(Math.random()*(max+1));
-            Duration currentTime = mediaPlayer.getCurrentTime();
-            Duration duration = mediaPlayer.getTotalDuration();
+            randombtnstatus = true;
             randomButton.setText("randoming");
-            if (currentTime == duration) {
-                media = new Media(songs.get(randomSongNum).toURI().toString());
-                mediaPlayer = new MediaPlayer(media);
-                mediaPlayer.play();
-            }
+        } else{
+            randombtnstatus = false;
+            randomButton.setText("random");
         }
+     }
+    public int randomSongNumber() {
+        if (randombtnstatus){
+            int max = songs.size() - 1;
+            return (int)Math.floor(Math.random()*(max+1));
+        }
+        return -1;
     }
-
-    public void changeVolume() {
-
+    public void playRandomSong(){
+        mediaPlayer.stop();
+        media = new Media(songs.get(randomSongNumber()).toURI().toString());
+        mediaPlayer = new MediaPlayer(media);
+        mediaPlayer.play();
+        getSongInfo(randomSongNumber());
     }
 
     public void changeSpeed(ActionEvent event) {
@@ -221,6 +225,8 @@ public class PlayerController implements Initializable{
                         songTime.setText(minutes +":" + seconds);
                         songProgressBar.setProgress(current/end);
                         if(current/end == 1) {
+                            playLoopSong();
+//                            playRandomSong();
                             cancelTimer();
                         }
                     }
@@ -235,5 +241,6 @@ public class PlayerController implements Initializable{
         running = false;
         timer.cancel();
     }
+
 
 }

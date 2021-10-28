@@ -7,6 +7,7 @@
 <?import javafx.scene.control.MenuButton?>
 <?import javafx.scene.control.MenuItem?>
 <?import javafx.scene.control.ProgressBar?>
+<?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.Slider?>
 <?import javafx.scene.image.Image?>
 <?import javafx.scene.image.ImageView?>
@@ -15,7 +16,7 @@
 
 <AnchorPane fx:id="pane" depthTest="DISABLE" prefHeight="442.0" prefWidth="749.0" style="-fx-background-color: #004953;" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="vn.tqt.player.music.PlayerController">
     <children>
-        <ImageView fitHeight="158.0" fitWidth="214.0" layoutX="331.0" layoutY="59.0" mouseTransparent="true" pickOnBounds="true" preserveRatio="true">
+        <ImageView fitHeight="182.0" fitWidth="200.0" layoutX="392.0" layoutY="62.0" mouseTransparent="true" pickOnBounds="true" preserveRatio="true">
             <Image url="@image/truyenthaiy.jpg" />
         </ImageView>
         <Label fx:id="songName" layoutX="318.0" layoutY="273.0" prefHeight="17.0" prefWidth="297.0" text="Songname" textFill="WHITE">
@@ -36,13 +37,21 @@
         <Button fx:id="loopButton" layoutX="609.0" layoutY="356.0" mnemonicParsing="false" onAction="#loopSong" prefHeight="25.0" prefWidth="68.0" text="Loop" />
         <ComboBox fx:id="speedBox" layoutX="635.0" layoutY="285.0" onAction="#changeSpeed" prefHeight="25.0" prefWidth="78.0" promptText="Speed" />
         <Label fx:id="songTime" layoutX="627.0" layoutY="324.0" text="0:0" textFill="WHITE" />
-        <MenuButton layoutX="14.0" layoutY="35.0" mnemonicParsing="false" prefHeight="5.0" prefWidth="99.0" text="MenuButton">
-            <items>
-                <MenuItem mnemonicParsing="false" text="Action 1" />
-                <MenuItem mnemonicParsing="false" text="Action 2" />
-            </items>
-        </MenuButton>
       <Slider fx:id="volumeBar" layoutX="290.0" layoutY="258.0" max="200.0" orientation="VERTICAL" prefHeight="74.0" prefWidth="14.0" value="100.0" />
+      <ScrollPane layoutX="13.0" layoutY="73.0" prefHeight="298.0" prefWidth="200.0">
+        <content>
+          <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="296.0" prefWidth="200.0">
+               <children>
+                    <MenuButton layoutX="4.0" layoutY="2.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="177.0" text="MenuButton">
+                        <items>
+                            <MenuItem mnemonicParsing="false" text="Action 1" />
+                            <MenuItem mnemonicParsing="false" text="Action 2" />
+                        </items>
+                    </MenuButton>
+               </children>
+            </AnchorPane>
+        </content>
+      </ScrollPane>
     </children>
    <opaqueInsets>
       <Insets />
