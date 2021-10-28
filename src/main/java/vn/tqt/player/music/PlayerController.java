@@ -1,5 +1,6 @@
 package vn.tqt.player.music;
 
+import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
@@ -38,7 +39,7 @@ public class PlayerController implements Initializable{
     @FXML
     private Label songTime;
     @FXML
-    private Button playButton, pauseButton, nextButton, perviousButton, loopButton, randomButtonq;
+    private Button playButton, pauseButton, nextButton, perviousButton, loopButton, randomButton;
     @FXML
     private ComboBox<String> speedBox;
     @FXML
@@ -58,6 +59,8 @@ public class PlayerController implements Initializable{
     private Timer timer;
     private TimerTask task;
     private boolean running;
+    private boolean playbtnstatus;
+    private boolean randombtnstatus;
 
 
     @Override
@@ -85,8 +88,6 @@ public class PlayerController implements Initializable{
             public void changed(ObservableValue<? extends Number> observableValue, Number number, Number t1) {
                 mediaPlayer.setVolume(volumeBar.getValue() * 0.01);
             }
-
-
         });
     }
 
@@ -115,7 +116,7 @@ public class PlayerController implements Initializable{
     }
 
     public void setTimeSong(){
-        Duration songTimes =   mediaPlayer.getCurrentTime();
+        Duration songTimes =  mediaPlayer.getCurrentTime();
         double songTimeSecon = songTimes.toSeconds();
         String songTimesString = String.valueOf(songTimeSecon);
         songTime.setText(songTimesString);
@@ -129,16 +130,18 @@ public class PlayerController implements Initializable{
     }
 
     public void playSong() {
-        mediaPlayer.play();
-        getSongInfo();
-        beginTimer();
-
-    }
-
-    public void pauseSong() {
-        mediaPlayer.pause();
-        cancelTimer();
-
+        if (playbtnstatus){
+            mediaPlayer.pause();
+            cancelTimer();
+            playbtnstatus = false;
+            playButton.setText("Play");
+        } else{
+            mediaPlayer.play();
+            getSongInfo();
+            beginTimer();
+            playbtnstatus = true;
+            playButton.setText("Pause");
+        }
     }
 
     public void nextSong() {
@@ -168,13 +171,25 @@ public class PlayerController implements Initializable{
         Duration currentTime = mediaPlayer.getCurrentTime();
         Duration duration = mediaPlayer.getTotalDuration();
         if (currentTime == duration){
+
               mediaPlayer.play();
         }
 
     }
 
     public void randomSong() {
-
+        if (!randombtnstatus){
+            int max = songs.size() - 1;
+            int randomSongNum = (int)Math.floor(Math.random()*(max+1));
+            Duration currentTime = mediaPlayer.getCurrentTime();
+            Duration duration = mediaPlayer.getTotalDuration();
+            randomButton.setText("randoming");
+            if (currentTime == duration) {
+                media = new Media(songs.get(randomSongNum).toURI().toString());
+                mediaPlayer = new MediaPlayer(media);
+                mediaPlayer.play();
+            }
+        }
     }
 
     public void changeVolume() {
@@ -193,19 +208,27 @@ public class PlayerController implements Initializable{
             public void run() {
 
                 running = true;
-                double current = mediaPlayer.getCurrentTime().toSeconds();
-                String songTimesString = String.valueOf(current);
-                songTime.setText(songTimesString);
-                double end = media.getDuration().toSeconds();
-                songProgressBar.setProgress(current/end);
-                if(current/end == 1) {
-                    cancelTimer();
-                }
+
+                Platform.runLater(new Runnable() {
+                    @Override
+                    public void run() {
+                        double current = mediaPlayer.getCurrentTime().toSeconds();
+                        double end = media.getDuration().toSeconds();
+                        int second = (int) current % 60;
+                        int minute = (int) (current / 60) % 60;
+                        String minutes = String.valueOf(minute);
+                        String seconds = String.valueOf(second);
+                        songTime.setText(minutes +":" + seconds);
+                        songProgressBar.setProgress(current/end);
+                        if(current/end == 1) {
+                            cancelTimer();
+                        }
+                    }
+                });
+
             }
         };
-
         timer.scheduleAtFixedRate(task, 0, 1000);
-
     }
 
     private void cancelTimer() {
