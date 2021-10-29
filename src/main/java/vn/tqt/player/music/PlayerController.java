@@ -7,6 +7,8 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.Pane;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
@@ -15,6 +17,7 @@ import org.apache.tika.parser.mp3.Mp3Parser;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.helpers.DefaultHandler;
 
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
 
@@ -29,7 +32,9 @@ import org.apache.tika.parser.ParseContext;
 import org.apache.tika.parser.Parser;
 import org.xml.sax.SAXException;
 
-public class PlayerController implements Initializable{
+public class PlayerController implements Initializable {
+    @FXML
+    private ImageView logoSong;
     @FXML
     private Pane pane;
     @FXML
@@ -51,11 +56,16 @@ public class PlayerController implements Initializable{
     private MediaPlayer mediaPlayer;
 
     @FXML
-    private File directory;
-    private File[] files;
+    private File musicDirectory;
+    @FXML
+    private File imageDirectory;
+    private File[] musicFiles;
+    private File[] imageFiles;
     private ArrayList<File> songs;
+    private ArrayList<File> images;
     private int songNumber;
-    private int[] speeds = {75, 100, 125, 150, 175};
+    private String songTitle;
+    private int[] speeds = {75, 100, 125, 150, 175, 500000};
     private Timer timer;
     private TimerTask task;
     private boolean running;
@@ -63,28 +73,39 @@ public class PlayerController implements Initializable{
     private boolean randombtnstatus;
     private boolean loopbtnstatus;
 
+    public PlayerController() throws MalformedURLException {
+    }
+
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         songs = new ArrayList<>();
-        directory = new File("music");
-        files = directory.listFiles();
+        musicDirectory = new File("music");
+        musicFiles = musicDirectory.listFiles();
+        images = new ArrayList<>();
+        imageDirectory = new File("image");
+        imageFiles = imageDirectory.listFiles();
 
-        if (files != null) {
-            for (File file : files) {
+
+        if (musicFiles != null) {
+            for (File file : musicFiles) {
                 songs.add(file);
                 System.out.println(file);
             }
         }
-
-        initMedia();
-
+        if (imageFiles != null) {
+            for (File file : imageFiles) {
+                images.add(file);
+                System.out.println(file);
+            }
+        }
+        getSongTitle();
+        initMedia(songNumber);
         for (int i = 0; i < speeds.length; i++) {
             speedBox.getItems().add(Integer.toString(speeds[i]));
         }
         speedBox.setOnAction(this::changeSpeed);
-        volumeBar.valueProperty().addListener(new ChangeListener<Number>(){
-
+        volumeBar.valueProperty().addListener(new ChangeListener<Number>() {
             @Override
             public void changed(ObservableValue<? extends Number> observableValue, Number number, Number t1) {
                 mediaPlayer.setVolume(volumeBar.getValue() * 0.01);
@@ -92,7 +113,11 @@ public class PlayerController implements Initializable{
         });
     }
 
-    public void getSongInfo(int songIndex)  {
+    public String getSongTitle() {
+            return songs.get(songNumber).getName();
+    }
+
+    public void getSongInfo(int songIndex) {
         String fileLocation = songs.get(songIndex).toPath().toString();
         try {
             InputStream input = new FileInputStream(fileLocation);
@@ -109,22 +134,37 @@ public class PlayerController implements Initializable{
         }
     }
 
-
-    public void initMedia() {
-        media = new Media(songs.get(songNumber).toURI().toString());
+    public void initMedia(int songIndex) {
+        media = new Media(songs.get(songIndex).toURI().toString());
         mediaPlayer = new MediaPlayer(media);
         getSongInfo(songNumber);
-
     }
 
-    public void playSong() {
-        if (playbtnstatus){
+    public String getRelativeName(){
+        String songNamePath = getSongTitle();
+        String relativeSongName =  songNamePath.substring(0, songNamePath.length() - 4 );
+        return relativeSongName + ".jpg";
+
+    }
+   public void setLogoSong() throws MalformedURLException {
+       File file = new File("C:\\Users\\TienTran_LAPTOP\\IdeaProjects\\Player-music-v1.1\\src\\main\\resources\\vn\\tqt\\player\\music\\image\\" + getRelativeName());
+       String localUrl = file.toURI().toURL().toString();
+       Image image = new Image(localUrl);
+       logoSong.setImage(image);
+    }
+    public void playSong() throws MalformedURLException {
+//        Song song = new Song("a", "b", "c");
+//        String json = JacksonParser.INSTANCE.toJson(song);
+//        System.out.println(json);
+//        Song s1 = JacksonParser.INSTANCE.toObject(json, Song.class);
+        if (playbtnstatus) {
             mediaPlayer.pause();
             cancelTimer();
             playbtnstatus = false;
             playButton.setText("Play");
-        } else{
+        } else {
             mediaPlayer.play();
+            setLogoSong();
             getSongInfo(songNumber);
             beginTimer();
             playbtnstatus = true;
@@ -132,72 +172,82 @@ public class PlayerController implements Initializable{
         }
     }
 
-    public void nextSong() {
+
+    public void nextSong() throws MalformedURLException {
         if (songNumber < songs.size() - 1) {
-            playbtnstatus =false;
+            playbtnstatus = false;
             songNumber++;
             mediaPlayer.stop();
-            initMedia();
+            initMedia(songNumber);
             playSong();
         } else {
             songNumber = 0;
             mediaPlayer.stop();
-            initMedia();
+            initMedia(songNumber);
             playbtnstatus = false;
             playSong();
         }
     }
 
-    public void perviousSong() {
+    public void perviousSong() throws MalformedURLException {
         if (songNumber > 0) {
             songNumber--;
             mediaPlayer.stop();
-            initMedia();
+            initMedia(songNumber);
             playSong();
         }
     }
+
     public void loopSong() {
-        if (!loopbtnstatus){
+        if (!loopbtnstatus) {
             loopbtnstatus = true;
+
+            mediaPlayer.setOnEndOfMedia(new Runnable() {
+                public void run() {
+                    mediaPlayer.seek(Duration.ZERO);
+                }
+            });
             loopButton.setText("looping");
-        } else{
+            if (randombtnstatus) {
+                randombtnstatus = false;
+                randomButton.setText("random");
+            }
+        } else {
             loopbtnstatus = false;
             loopButton.setText("loop");
         }
 
     }
-    public void playLoopSong() {
-        if (loopbtnstatus){
-            mediaPlayer.stop();
-            media = new Media(songs.get(songNumber).toURI().toString());
-            mediaPlayer = new MediaPlayer(media);
-            mediaPlayer.play();
-            getSongInfo(songNumber);
-        }
 
-    }
-     public void randomSong(){
-        if (!randombtnstatus){
+    public void randomSong() {
+        if (!randombtnstatus) {
             randombtnstatus = true;
             randomButton.setText("randoming");
-        } else{
+            if (loopbtnstatus) {
+                loopbtnstatus = false;
+                loopButton.setText("loop");
+            }
+        } else {
             randombtnstatus = false;
             randomButton.setText("random");
         }
-     }
+    }
+
     public int randomSongNumber() {
-        if (randombtnstatus){
+        if (randombtnstatus) {
             int max = songs.size() - 1;
-            return (int)Math.floor(Math.random()*(max+1));
+            return (int) Math.floor(Math.random() * (max + 1));
         }
         return -1;
     }
-    public void playRandomSong(){
+
+    public void playRandomSong() {
         mediaPlayer.stop();
-        media = new Media(songs.get(randomSongNumber()).toURI().toString());
-        mediaPlayer = new MediaPlayer(media);
+        songNumber = randomSongNumber();
+        initMedia(songNumber);
         mediaPlayer.play();
-        getSongInfo(randomSongNumber());
+        getSongInfo(songNumber);
+        beginTimer();
     }
 
     public void changeSpeed(ActionEvent event) {
@@ -206,13 +256,9 @@ public class PlayerController implements Initializable{
 
     public void beginTimer() {
         timer = new Timer();
-
         task = new TimerTask() {
-
             public void run() {
-
                 running = true;
-
                 Platform.runLater(new Runnable() {
                     @Override
                     public void run() {
@@ -222,16 +268,16 @@ public class PlayerController implements Initializable{
                         int minute = (int) (current / 60) % 60;
                         String minutes = String.valueOf(minute);
                         String seconds = String.valueOf(second);
-                        songTime.setText(minutes +":" + seconds);
-                        songProgressBar.setProgress(current/end);
-                        if(current/end == 1) {
-                            playLoopSong();
-//                            playRandomSong();
+                        songTime.setText(minutes + ":" + seconds);
+                        songProgressBar.setProgress(current / end);
+                        if (current / end == 1) {
+                            if (randombtnstatus) {
+                                playRandomSong();
+                            }
                             cancelTimer();
                         }
                     }
                 });
-
             }
         };
         timer.scheduleAtFixedRate(task, 0, 1000);
@@ -241,6 +287,5 @@ public class PlayerController implements Initializable{
         running = false;
         timer.cancel();
     }
-
 
 }

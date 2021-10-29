@@ -9,16 +9,12 @@
 <?import javafx.scene.control.ProgressBar?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.Slider?>
-<?import javafx.scene.image.Image?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.text.Font?>
 
 <AnchorPane fx:id="pane" depthTest="DISABLE" prefHeight="442.0" prefWidth="749.0" style="-fx-background-color: #004953;" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="vn.tqt.player.music.PlayerController">
     <children>
-        <ImageView fitHeight="182.0" fitWidth="200.0" layoutX="392.0" layoutY="62.0" mouseTransparent="true" pickOnBounds="true" preserveRatio="true">
-            <Image url="@image/truyenthaiy.jpg" />
-        </ImageView>
         <Label fx:id="songName" layoutX="318.0" layoutY="273.0" prefHeight="17.0" prefWidth="297.0" text="Songname" textFill="WHITE">
             <font>
                 <Font size="16.0" />
@@ -52,6 +48,7 @@
             </AnchorPane>
         </content>
       </ScrollPane>
+      <ImageView fx:id="logoSong" fitHeight="150.0" fitWidth="200.0" layoutX="367.0" layoutY="85.0" pickOnBounds="true" preserveRatio="true" />
     </children>
    <opaqueInsets>
       <Insets />
