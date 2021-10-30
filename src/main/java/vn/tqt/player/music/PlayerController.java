@@ -3,10 +3,13 @@ package vn.tqt.player.music;
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Pane;
@@ -17,20 +20,17 @@ import org.apache.tika.parser.mp3.Mp3Parser;
 import org.xml.sax.ContentHandler;
 import org.xml.sax.helpers.DefaultHandler;
 
+import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
 
 import org.apache.tika.exception.TikaException;
 import org.apache.tika.metadata.Metadata;
 import org.apache.tika.parser.ParseContext;
 import org.apache.tika.parser.Parser;
 import org.xml.sax.SAXException;
+import vn.tqt.player.music.repository.Song;
 
 public class PlayerController implements Initializable {
     @FXML
@@ -51,6 +51,13 @@ public class PlayerController implements Initializable {
     private Slider volumeBar;
     @FXML
     private ProgressBar songProgressBar;
+    @FXML
+    private TableView<Song> table;
+    @FXML
+    private TableColumn<Song, Integer> idColumn;
+    @FXML
+    private TableColumn<Song, String> nameColumn;
+    private ObservableList<Song> songList;
 
     private Media media;
     private MediaPlayer mediaPlayer;
@@ -85,8 +92,10 @@ public class PlayerController implements Initializable {
         images = new ArrayList<>();
         imageDirectory = new File("image");
         imageFiles = imageDirectory.listFiles();
-
-
+        songList = FXCollections.observableArrayList();
+        idColumn.setCellValueFactory(new PropertyValueFactory<Song, Integer>("id"));
+        nameColumn.setCellValueFactory(new PropertyValueFactory<Song, String>("songName"));
+        table.setItems(songList);
         if (musicFiles != null) {
             for (File file : musicFiles) {
                 songs.add(file);
@@ -99,8 +108,17 @@ public class PlayerController implements Initializable {
                 System.out.println(file);
             }
         }
+        try {
+            setLogoSong();
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        }
         getSongTitle();
-        initMedia(songNumber);
+        try {
+            initMedia(songNumber);
+        } catch (TikaException | IOException | SAXException e) {
+            e.printStackTrace();
+        }
         for (int i = 0; i < speeds.length; i++) {
             speedBox.getItems().add(Integer.toString(speeds[i]));
         }
@@ -111,12 +129,25 @@ public class PlayerController implements Initializable {
                 mediaPlayer.setVolume(volumeBar.getValue() * 0.01);
             }
         });
+        try {
+            addSongToTbView();
+        } catch (TikaException | SAXException | IOException e) {
+            e.printStackTrace();
+        }
+    }
+    public void addSongToTbView() throws TikaException, IOException, SAXException {
+        for (int i = 0; i < 26; i++) {
+            String songName = getTitleSong(i);
+            Song newSong = new Song();
+            newSong.setId(i);
+            newSong.setSongName(songName);
+            songList.add(newSong);
+        }
     }
 
     public String getSongTitle() {
-            return songs.get(songNumber).getName();
+        return songs.get(songNumber).getName();
     }
-
     public void getSongInfo(int songIndex) {
         String fileLocation = songs.get(songIndex).toPath().toString();
         try {
@@ -133,25 +164,41 @@ public class PlayerController implements Initializable {
             e.printStackTrace();
         }
     }
+    public String getTitleSong(int indexSong) throws IOException, TikaException, SAXException {
+        String fileLocation = songs.get(indexSong).toPath().toString();
+            InputStream input = new FileInputStream(fileLocation);
+            ContentHandler handler = new DefaultHandler();
+            Metadata metadata = new Metadata();
+            Parser parser = new Mp3Parser();
+            ParseContext parseCtx = new ParseContext();
+            parser.parse(input, handler, metadata, parseCtx);
+            input.close();
+            return metadata.get("title");
+    }
 
-    public void initMedia(int songIndex) {
+
+    public void initMedia(int songIndex) throws TikaException, IOException, SAXException {
         media = new Media(songs.get(songIndex).toURI().toString());
         mediaPlayer = new MediaPlayer(media);
         getSongInfo(songNumber);
+        setLogoSong();
+
     }
 
-    public String getRelativeName(){
+    public String getRelativeName() {
         String songNamePath = getSongTitle();
-        String relativeSongName =  songNamePath.substring(0, songNamePath.length() - 4 );
+        String relativeSongName = songNamePath.substring(0, songNamePath.length() - 4);
         return relativeSongName + ".jpg";
 
     }
-   public void setLogoSong() throws MalformedURLException {
-       File file = new File("C:\\Users\\TienTran_LAPTOP\\IdeaProjects\\Player-music-v1.1\\src\\main\\resources\\vn\\tqt\\player\\music\\image\\" + getRelativeName());
-       String localUrl = file.toURI().toURL().toString();
-       Image image = new Image(localUrl);
-       logoSong.setImage(image);
+
+    public void setLogoSong() throws MalformedURLException {
+        File file = new File("C:\\Users\\TienTran_LAPTOP\\IdeaProjects\\Player-music-v1.1\\src\\main\\resources\\vn\\tqt\\player\\music\\image\\" + getRelativeName());
+        String localUrl = file.toURI().toURL().toString();
+        Image image = new Image(localUrl);
+        logoSong.setImage(image);
     }
+
     public void playSong() throws MalformedURLException {
 //        Song song = new Song("a", "b", "c");
 //        String json = JacksonParser.INSTANCE.toJson(song);
@@ -164,7 +211,6 @@ public class PlayerController implements Initializable {
             playButton.setText("Play");
         } else {
             mediaPlayer.play();
-            setLogoSong();
             getSongInfo(songNumber);
             beginTimer();
             playbtnstatus = true;
@@ -173,30 +219,39 @@ public class PlayerController implements Initializable {
     }
 
 
-    public void nextSong() throws MalformedURLException {
+    public void nextSong() throws IOException, TikaException, SAXException {
         if (songNumber < songs.size() - 1) {
-            playbtnstatus = false;
-            songNumber++;
-            mediaPlayer.stop();
-            initMedia(songNumber);
-            playSong();
-        } else {
-            songNumber = 0;
-            mediaPlayer.stop();
-            initMedia(songNumber);
-            playbtnstatus = false;
-            playSong();
+            if (playbtnstatus) {
+                playbtnstatus = false;
+                songNumber++;
+                mediaPlayer.stop();
+                initMedia(songNumber);
+                playSong();
+            } else {
+                songNumber++;
+                mediaPlayer.stop();
+                initMedia(songNumber);
+            }
+
         }
     }
 
-    public void perviousSong() throws MalformedURLException {
+    public void perviousSong() throws IOException, TikaException, SAXException {
         if (songNumber > 0) {
-            songNumber--;
-            mediaPlayer.stop();
-            initMedia(songNumber);
-            playSong();
+            if (playbtnstatus) {
+                playbtnstatus = false;
+                songNumber--;
+                mediaPlayer.stop();
+                initMedia(songNumber);
+                playSong();
+            } else {
+                songNumber--;
+                mediaPlayer.stop();
+                initMedia(songNumber);
+            }
         }
     }
+
 
     public void loopSong() {
         if (!loopbtnstatus) {
@@ -241,7 +296,7 @@ public class PlayerController implements Initializable {
         return -1;
     }
 
-    public void playRandomSong() {
+    public void playRandomSong() throws TikaException, IOException, SAXException {
         mediaPlayer.stop();
         songNumber = randomSongNumber();
         initMedia(songNumber);
@@ -272,9 +327,18 @@ public class PlayerController implements Initializable {
                         songProgressBar.setProgress(current / end);
                         if (current / end == 1) {
                             if (randombtnstatus) {
-                                playRandomSong();
+                                try {
+                                    playRandomSong();
+                                } catch (TikaException | IOException | SAXException e) {
+                                    e.printStackTrace();
+                                }
                             }
                             cancelTimer();
+                            try {
+                                nextSong();
+                            } catch (IOException | TikaException | SAXException e) {
+                                e.printStackTrace();
+                            }
                         }
                     }
                 });
