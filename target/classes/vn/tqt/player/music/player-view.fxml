@@ -8,6 +8,7 @@
 <?import javafx.scene.control.Slider?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.StackPane?>
@@ -39,12 +40,16 @@
             <ImageView fx:id="logoSong" fitHeight="160.0" fitWidth="275.0" pickOnBounds="true" preserveRatio="true" />
          </children>
       </StackPane>
-      <TableView fx:id="table" layoutX="27.0" layoutY="73.0" prefHeight="266.0" prefWidth="168.0">
+      <TableView fx:id="table" layoutX="27.0" layoutY="73.0" prefHeight="266.0" prefWidth="196.0">
         <columns>
           <TableColumn fx:id="idColumn" prefWidth="33.0" text="ID" />
-          <TableColumn fx:id="nameColumn" prefWidth="134.0" text="Song Name" />
+          <TableColumn fx:id="nameColumn" prefWidth="162.0" text="Song Name" />
         </columns>
       </TableView>
+      <Button layoutX="171.0" layoutY="339.0" mnemonicParsing="false" onAction="#addToPlayList" prefHeight="18.0" prefWidth="52.0" text="Add" />
+      <ComboBox layoutX="27.0" layoutY="14.0" prefHeight="25.0" prefWidth="196.0" promptText="PlayList" style="-fx-cursor: pointer;" />
+      <Button fx:id="createPlaylist" layoutX="231.0" layoutY="14.0" mnemonicParsing="false" onAction="#createPlaylist" prefHeight="17.0" prefWidth="25.0" text="+" />
+      <TextField fx:id="namePlaylist" layoutX="263.0" layoutY="14.0" />
     </children>
    <opaqueInsets>
       <Insets />

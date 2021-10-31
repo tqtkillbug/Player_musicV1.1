@@ -18,4 +18,6 @@ module com.example.demo {
     exports vn.tqt.player.music;
     exports vn.tqt.player.music.repository;
     opens vn.tqt.player.music.repository to com.fasterxml.jackson.annotation, com.fasterxml.jackson.core, com.fasterxml.jackson.databind, javafx.fxml;
+    exports vn.tqt.player.music.services;
+    opens vn.tqt.player.music.services to com.fasterxml.jackson.annotation, com.fasterxml.jackson.core, com.fasterxml.jackson.databind, javafx.fxml;
 }

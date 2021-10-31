@@ -7,7 +7,9 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
+import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
@@ -15,6 +17,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.Pane;
 import javafx.scene.media.Media;
 import javafx.scene.media.MediaPlayer;
+import javafx.stage.Stage;
 import javafx.util.Duration;
 import org.apache.tika.parser.mp3.Mp3Parser;
 import org.xml.sax.ContentHandler;
@@ -33,6 +36,8 @@ import org.xml.sax.SAXException;
 import vn.tqt.player.music.repository.Song;
 
 public class PlayerController implements Initializable {
+    @FXML
+    private TextField namePlaylist;
     @FXML
     private ImageView logoSong;
     @FXML
@@ -79,9 +84,6 @@ public class PlayerController implements Initializable {
     private boolean playbtnstatus;
     private boolean randombtnstatus;
     private boolean loopbtnstatus;
-
-    public PlayerController() throws MalformedURLException {
-    }
 
 
     @Override
@@ -351,5 +353,25 @@ public class PlayerController implements Initializable {
         running = false;
         timer.cancel();
     }
-
+    @FXML
+    public void addToPlayList() throws IOException {
+//        Song selected = table.getSelectionModel().getSelectedItem();
+//        System.out.println(selected.getId());
+//        System.out.println(selected.getSongName());
+        FXMLLoader fxmlLoader = new FXMLLoader(PlayerApp.class.getResource("add-playlist-window.fxml"));
+        Scene scene = new Scene(fxmlLoader.load(), 300, 200);
+        Stage stage = new Stage();
+        stage.setTitle("Add to Playlist");
+        stage.setScene(scene);
+        stage.show();
+     }
+     public void createPlaylist() throws Exception {
+        String forderPlaylistName  = namePlaylist.getText();
+         String sourcePath = "C:\\Users\\TienTran_LAPTOP\\IdeaProjects\\Player-music-v1.1\\";
+         File file = new File(sourcePath + forderPlaylistName);
+         boolean bool = file.mkdir();
+         if(!bool){
+             throw new Exception("Error creat file");
+         }
+     }
 }

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.text.Font?>
+
+
+<AnchorPane prefHeight="188.0" prefWidth="308.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="vn.tqt.player.music.AddToPlaylistWindow">
+   <children>
+      <TableView layoutX="17.0" layoutY="29.0" prefHeight="130.0" prefWidth="222.0">
+        <columns>
+          <TableColumn prefWidth="75.0" text="C1" />
+          <TableColumn prefWidth="124.0" text="PlayList Name" />
+        </columns>
+      </TableView>
+      <Button layoutX="250.0" layoutY="82.0" mnemonicParsing="false" prefHeight="19.0" prefWidth="44.0" text="Add" />
+      <Label layoutX="16.0" layoutY="6.0" prefHeight="19.0" prefWidth="256.0" text="Select the Playlist you want to add music to">
+         <font>
+            <Font size="13.0" />
+         </font>
+      </Label>
+   </children>
+</AnchorPane>
